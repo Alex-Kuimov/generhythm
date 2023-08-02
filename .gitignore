@@ -1,0 +1,9 @@
+# created by virtualenv automatically
+/.idea/
+/_tmp/
+/EZDrummer/
+/Lib/
+/Scripts/
+/share/
+/pyvenv.cfg
+/out/
