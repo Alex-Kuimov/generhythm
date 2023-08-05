@@ -1,4 +1,4 @@
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 from prepare import gen_drums, convert_midi_to_digital_format, get_midi_files, prepare_sequences, create_note_dict
 
 def gen(style, count):
@@ -15,14 +15,14 @@ def gen(style, count):
 
     file_names = []
     for _ in range(count):
-        drum_file = gen_drums(model, midi_files, notes, note_dict, x, style)
+        drum_file = gen_drums(model, note_dict, x, style)
         file_names.append(drum_file)
 
     return file_names
 
-# styles = ['pop', 'funk', 'post-rock', 'rock', 'soul']
-#
+styles = ['pop', 'funk', 'post-rock', 'rock', 'soul']
+
 # for style in styles:
 #     gen(style, 10)
 
-#gen('rock', 10)
+gen('funk', 10)

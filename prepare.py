@@ -37,7 +37,6 @@ def convert_midi_to_digital_format(midi_file):
     for track in mid.tracks:
         for msg in track:
             if msg.type == 'note_on':
-
                 if msg.velocity == 0:
                     note = 1
                 else:
@@ -69,7 +68,9 @@ def prepare_sequences(notes, note_dict):
         sequence_out = notes[i + sequence_length]
 
         sequence_input.append([index_dict[note] for note in sequence_in])
-        sequence_output.append(index_dict[sequence_out])
+
+        if sequence_out in index_dict:
+            sequence_output.append(index_dict[sequence_out])
 
     # Преобразование входных и выходных последовательностей в формат numpy массивов
     x = np.reshape(sequence_input, (len(sequence_input), sequence_length, 1))
@@ -85,9 +86,10 @@ def create_note_dict(notes):
     return note_dict
 
 
-def gen_drums(model, midi_files, notes, note_dict, x, style):
+def gen_drums(model, note_dict, x, style):
     start = np.random.randint(0, len(x) - 1)
     pattern = x[start]
+
     prediction_output = []
 
     for note_index in range(128):
@@ -105,7 +107,7 @@ def gen_drums(model, midi_files, notes, note_dict, x, style):
     print(unique_values)
 
     if unique_values < 5:
-        gen_drums(model, midi_files, notes, note_dict, x, style)
+        gen_drums(model, note_dict, x, style)
     else:
         now = datetime.now()
         current_date = now.strftime("%Y-%m-%d")
@@ -128,26 +130,8 @@ def gen_drums(model, midi_files, notes, note_dict, x, style):
         for predicted_note in prediction_output:
             note = next((k for k, v in note_dict.items() if v == predicted_note), None)
 
-            ####################################
-
-            # velocity = random.randint(80, 90)
-            # new_note = Message(type='note_on', note=note[0], velocity=velocity, time=115)
-            # output_notes.append(new_note)
-
-            ##################################
-
-            # velocity = random.randint(80, 90)
-            # new_note = Message(type='note_on', note=note[0], velocity=velocity, time=115)
-            #
-            # if note[0] == 1:
-            #     new_note = Message(type='note_off', note=0, velocity=0, channel=0, time=115)
-            #
-            # new_note = Message(type='note_on', note=note[0], velocity=velocity, time=115)
-            # output_notes.append(new_note)
-
-            ###################################################
-
-            new_note = Message(type='note_on', note=note[0], velocity=velocity, time=115)
+            note_on = Message(type='note_on', note=note[0], velocity=velocity, time=115)
+            note_off = Message(type='note_off', note=note[0], velocity=0, time=115)
 
             if note[0] == 1:
                 velocity = random.randint(50, 60)
@@ -155,7 +139,8 @@ def gen_drums(model, midi_files, notes, note_dict, x, style):
                 velocity = random.randint(80, 90)
 
             if note[0] != 1:
-                output_notes.append(new_note)
+                output_notes.append(note_on)
+                output_notes.append(note_off)
 
         mid = MidiFile()
         track = MidiTrack()
