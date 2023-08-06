@@ -37,7 +37,7 @@ def create_dict_sequences(notes):
             if pattern:
                 pattern_str = ",".join(str(n) for n in pattern)
 
-                if pattern_str not in patterns_dict:
+                if pattern_str not in patterns_dict and len(pattern_str)<=11:
                     patterns_dict[pattern_str] = pattern_id
                     pattern_id += 1
                 pattern = []

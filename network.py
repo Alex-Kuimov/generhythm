@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
 from collections import Counter
-from mido import MidiFile, MidiTrack, Message
+from mido import MidiFile, MidiTrack, Message, MetaMessage
 import pprint
 from datetime import datetime
 import random
@@ -59,14 +59,21 @@ def generate(model, x, dict_sequences, style, deviation, time):
                 output_notes.append(note_on)
                 t = 0
 
-            time = time
+            t = time
             for note in notes:
-                note_off = Message(type='note_off', note=int(note), velocity=0, time=t)
-                output_notes.append(note_off)
+                velocity = random.randint(50, 60)
+                note_on = Message(type='note_on', note=int(note), velocity=0, time=t)
+                output_notes.append(note_on)
                 t = 0
 
+        meta_tempo =  MetaMessage('set_tempo', tempo=857143, time=0),
+        meta_signature = MetaMessage('time_signature', numerator=4, denominator=4, clocks_per_click=24, notated_32nd_notes_per_beat=8, time=0),
 
         mid = MidiFile()
+
+        mid.tracks.append(meta_tempo)
+        mid.tracks.append(meta_signature)
+
         mid.tracks.append(output_notes)
 
         now = datetime.now()

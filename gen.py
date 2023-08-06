@@ -19,10 +19,10 @@ def create_drums(data_name, deviation, time):
 
     generate(model, x, dict, data_name, deviation, time)
 
-data_name = 'pop'
+data_name = 'rock'
 count = 10
-deviation = 1
-time = 110
+deviation = 0
+time = 90
 
 for _ in range(count):
     create_drums(data_name, deviation, time)
