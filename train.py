@@ -2,7 +2,7 @@ from midi import get_midi_files, get_notes, create_dict_sequences
 from prepare import prepare_sequences
 from network import create_network, train
 
-data_set = 'rock'
+data_set = 'piano'
 
 midi_files = get_midi_files('data/'+data_set)
 

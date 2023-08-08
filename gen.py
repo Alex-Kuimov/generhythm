@@ -3,7 +3,7 @@ from network import generate
 from midi import get_midi_files, get_notes, create_dict_sequences
 from prepare import prepare_sequences
 
-def create_drums(data_name, deviation, time):
+def create_drums(data_name, deviation, time, note_count):
     model = load_model('models/' + data_name + '.keras')
     midi_files = get_midi_files('data/' + data_name)
 
@@ -17,12 +17,22 @@ def create_drums(data_name, deviation, time):
 
     dict = {value: key for key, value in dict_sequences.items()}
 
-    generate(model, x, dict, data_name, deviation, time)
+    return generate(model, x, dict, data_name, deviation, time, note_count)
 
-data_name = 'rock'
-count = 10
-deviation = 0
-time = 90
 
-for _ in range(count):
-    create_drums(data_name, deviation, time)
+def create_files(data_name, count, deviation, time, note_count):
+    files = []
+    for _ in range(count):
+        file = create_drums(data_name, deviation, time, note_count)
+        files.append(file)
+
+    return files
+
+
+# data_name = 'rock'
+# count = 2
+# deviation = 0
+# time = 90
+# note_count = 42
+#
+# create_files(data_name, count, deviation, time, note_count)

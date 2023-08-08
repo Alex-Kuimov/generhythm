@@ -26,13 +26,13 @@ def train(model, input_data, output_data, epochs=20, batch_size=64, name='data')
     model.save('models/' + name + '.keras')
 
 
-def generate(model, x, dict_sequences, style, deviation, time):
+def generate(model, x, dict_sequences, style, deviation, time, note_count):
     start = np.random.randint(0, len(x) - 1)
     pattern = x[start]
 
     prediction_output = []
 
-    for note_index in range(40):
+    for note_index in range(note_count):
         prediction_input = np.reshape(pattern, (1, len(pattern), 1))
         prediction = model.predict(prediction_input)
         predicted_note = np.argmax(prediction)
@@ -44,7 +44,7 @@ def generate(model, x, dict_sequences, style, deviation, time):
     unique_values = len(counted_values)
 
     if unique_values < 3:
-        generate(model, x, dict_sequences, style, deviation, time)
+        generate(model, x, dict_sequences, style, deviation, time, note_count)
     else:
         output_notes = []
         for predicted_note in prediction_output:
@@ -61,17 +61,16 @@ def generate(model, x, dict_sequences, style, deviation, time):
 
             t = time
             for note in notes:
-                velocity = random.randint(50, 60)
                 note_on = Message(type='note_on', note=int(note), velocity=0, time=t)
                 output_notes.append(note_on)
                 t = 0
 
-        meta_tempo =  MetaMessage('set_tempo', tempo=857143, time=0),
+        #meta_tempo =  MetaMessage('set_tempo', tempo=857143, time=0),
         meta_signature = MetaMessage('time_signature', numerator=4, denominator=4, clocks_per_click=24, notated_32nd_notes_per_beat=8, time=0),
 
         mid = MidiFile()
 
-        mid.tracks.append(meta_tempo)
+        #mid.tracks.append(meta_tempo)
         mid.tracks.append(meta_signature)
 
         mid.tracks.append(output_notes)
@@ -84,3 +83,5 @@ def generate(model, x, dict_sequences, style, deviation, time):
         mid.save(filename)
 
         print("Файл сохранен:", filename)
+
+        return filename
