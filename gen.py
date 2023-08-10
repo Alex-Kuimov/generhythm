@@ -1,28 +1,38 @@
 from tensorflow.keras.models import load_model
-from prepare import gen_drums, convert_midi_to_digital_format, get_midi_files, prepare_sequences, create_note_dict
+from network import generate
+from midi import get_midi_files, get_notes, create_dict_sequences
+from prepare import prepare_sequences
 
-def gen(style, count):
-    model = load_model('models/' + style + '.keras')
-
-    midi_files = get_midi_files('data/' + style)  # Список ваших MIDI файлов
+def create_drums(data_name, deviation, time, note_count):
+    model = load_model('models/' + data_name + '.keras')
+    midi_files = get_midi_files('data/' + data_name)
 
     notes = []
     for file in midi_files:
-        notes += convert_midi_to_digital_format(file)
+        notes += get_notes(file)
 
-    note_dict = create_note_dict(notes)
-    x, y = prepare_sequences(notes, note_dict)
+    dict_sequences = create_dict_sequences(notes)
 
-    file_names = []
+    x, y = prepare_sequences(notes, dict_sequences)
+
+    dict = {value: key for key, value in dict_sequences.items()}
+
+    return generate(model, x, dict, data_name, deviation, time, note_count)
+
+
+def create_files(data_name, count, deviation, time, note_count):
+    files = []
     for _ in range(count):
-        drum_file = gen_drums(model, note_dict, x, style)
-        file_names.append(drum_file)
+        file = create_drums(data_name, deviation, time, note_count)
+        files.append(file)
 
-    return file_names
+    return files
 
-styles = ['pop', 'funk', 'post-rock', 'rock', 'soul']
 
-# for style in styles:
-#     gen(style, 10)
-
-gen('funk', 10)
+# data_name = 'rock'
+# count = 2
+# deviation = 0
+# time = 90
+# note_count = 42
+#
+# create_files(data_name, count, deviation, time, note_count)
