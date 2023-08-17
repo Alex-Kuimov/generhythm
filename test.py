@@ -1,7 +1,12 @@
 import numpy as np
+import math
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import load_model
 import mido
+from mido import MidiFile
 from mido import MidiFile, MidiTrack, Message, MetaMessage
+from network import create_network, train
+from collections import defaultdict
 
 
 def get_notes_from_midi(filename):
@@ -96,6 +101,31 @@ def prepare_sequences(notes, note_dict):
     return x, y
 
 
+def predict(model, x):
+    start = np.random.randint(0, len(x) - 1)
+    pattern = x[start]
+    prediction_output = []
+
+    for note_index in range(64):
+        prediction_input = np.reshape(pattern, (1, len(pattern), 1))
+        prediction = model.predict(prediction_input)
+        predicted_note = np.argmax(prediction)
+        prediction_output.append(predicted_note)
+
+        pattern = np.append(pattern, predicted_note)
+        pattern = pattern[1:len(pattern)]
+
+    return prediction_output
+
+
+def get_notes(prediction_output, dict):
+    notes = []
+    for id in prediction_output:
+        notes.append(dict[id])
+
+    return notes
+
+
 def reindex_dict(note_dict):
     unique_dict = {}
     i = 1
@@ -106,9 +136,51 @@ def reindex_dict(note_dict):
     return unique_dict
 
 
-def get_notes(prediction_output, dict):
-    notes = []
-    for id in prediction_output:
-        notes.append(dict[id])
+def gen(count, digital_dict, note_dict, x, data_name):
+    model = load_model('models/'+data_name+'.keras')
+    digital_dict = {value: key for key, value in digital_dict.items()}
+    new_digital_notes = []
+    new_notes = []
 
-    return notes
+    for i in range(count):
+        prediction_output = predict(model, x)
+        digital_notes = get_notes(prediction_output, digital_dict)
+        new_digital_notes.append(digital_notes)
+
+
+    for notes in new_digital_notes:
+        for id in notes:
+            new_notes.append(note_dict[id])
+
+
+    print(new_notes)
+
+    create_midi_file(new_notes, 'out/'+data_name+'.mid')
+
+
+#############################################################
+
+print('#####################START#######################')
+
+data_name = 'jazz'
+notes = get_notes_from_midi('data/'+data_name+'.mid')
+note_dict = reindex_dict(create_unique_id_dict(notes))
+
+digital_note = replace_notes_with_ids(notes, note_dict)
+digital_dict = create_dict(digital_note)
+
+x,y = prepare_sequences(digital_note, digital_dict)
+
+num_features = len(set(digital_dict))
+input_dim = 1
+
+##############################################################
+
+# model = create_network(input_dim, num_features)
+# train(model, x, y, epochs=50, batch_size=64, name=data_name)
+
+##############################################################
+
+gen(1, digital_dict, note_dict,  x, data_name)
+
+print('#####################END#######################')
